@@ -9,38 +9,141 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppTemplatesRouteImport } from './routes/app.templates'
+import { Route as AppBrandKitRouteImport } from './routes/app.brand-kit'
+import { Route as ApiGenerateRouteImport } from './routes/api/generate'
+import { Route as AppDocumentsIdRouteImport } from './routes/app.documents.$id'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTemplatesRoute = AppTemplatesRouteImport.update({
+  id: '/templates',
+  path: '/templates',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBrandKitRoute = AppBrandKitRouteImport.update({
+  id: '/brand-kit',
+  path: '/brand-kit',
+  getParentRoute: () => AppRoute,
+} as any)
+const ApiGenerateRoute = ApiGenerateRouteImport.update({
+  id: '/api/generate',
+  path: '/api/generate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppDocumentsIdRoute = AppDocumentsIdRouteImport.update({
+  id: '/documents/$id',
+  path: '/documents/$id',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/api/generate': typeof ApiGenerateRoute
+  '/app/brand-kit': typeof AppBrandKitRoute
+  '/app/templates': typeof AppTemplatesRoute
+  '/app/': typeof AppIndexRoute
+  '/app/documents/$id': typeof AppDocumentsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/api/generate': typeof ApiGenerateRoute
+  '/app/brand-kit': typeof AppBrandKitRoute
+  '/app/templates': typeof AppTemplatesRoute
+  '/app': typeof AppIndexRoute
+  '/app/documents/$id': typeof AppDocumentsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/api/generate': typeof ApiGenerateRoute
+  '/app/brand-kit': typeof AppBrandKitRoute
+  '/app/templates': typeof AppTemplatesRoute
+  '/app/': typeof AppIndexRoute
+  '/app/documents/$id': typeof AppDocumentsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/auth'
+    | '/api/generate'
+    | '/app/brand-kit'
+    | '/app/templates'
+    | '/app/'
+    | '/app/documents/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/api/generate'
+    | '/app/brand-kit'
+    | '/app/templates'
+    | '/app'
+    | '/app/documents/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/app'
+    | '/auth'
+    | '/api/generate'
+    | '/app/brand-kit'
+    | '/app/templates'
+    | '/app/'
+    | '/app/documents/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  ApiGenerateRoute: typeof ApiGenerateRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +151,65 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/templates': {
+      id: '/app/templates'
+      path: '/templates'
+      fullPath: '/app/templates'
+      preLoaderRoute: typeof AppTemplatesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/brand-kit': {
+      id: '/app/brand-kit'
+      path: '/brand-kit'
+      fullPath: '/app/brand-kit'
+      preLoaderRoute: typeof AppBrandKitRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/api/generate': {
+      id: '/api/generate'
+      path: '/api/generate'
+      fullPath: '/api/generate'
+      preLoaderRoute: typeof ApiGenerateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/documents/$id': {
+      id: '/app/documents/$id'
+      path: '/documents/$id'
+      fullPath: '/app/documents/$id'
+      preLoaderRoute: typeof AppDocumentsIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
+interface AppRouteChildren {
+  AppBrandKitRoute: typeof AppBrandKitRoute
+  AppTemplatesRoute: typeof AppTemplatesRoute
+  AppIndexRoute: typeof AppIndexRoute
+  AppDocumentsIdRoute: typeof AppDocumentsIdRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppBrandKitRoute: AppBrandKitRoute,
+  AppTemplatesRoute: AppTemplatesRoute,
+  AppIndexRoute: AppIndexRoute,
+  AppDocumentsIdRoute: AppDocumentsIdRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
+  AuthRoute: AuthRoute,
+  ApiGenerateRoute: ApiGenerateRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
