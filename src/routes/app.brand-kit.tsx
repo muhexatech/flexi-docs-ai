@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -8,6 +8,8 @@ export const Route = createFileRoute("/app/brand-kit")({ component: BrandKitPage
 function BrandKitPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({ display_name: "", company_name: "", logo_url: "", brand_primary: "#0a0a0b", brand_accent: "#d4d4d8" });
 
   useEffect(() => {
@@ -35,6 +37,25 @@ function BrandKitPage() {
     setSaving(false);
   }
 
+  async function uploadLogo(file: File) {
+    if (!file.type.startsWith("image/")) { toast.error("Please choose an image file"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Max file size is 5MB"); return; }
+    setUploading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { toast.error("Not signed in"); return; }
+      const ext = file.name.split(".").pop() || "png";
+      const path = `${user.id}/logo-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("brand-logos").upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) { toast.error(upErr.message); return; }
+      const { data: pub } = supabase.storage.from("brand-logos").getPublicUrl(path);
+      setForm((f) => ({ ...f, logo_url: pub.publicUrl }));
+      toast.success("Logo uploaded — don't forget to save");
+    } finally {
+      setUploading(false);
+    }
+  }
+
   if (loading) return <div className="p-10 text-sm text-zinc-500">Loading…</div>;
 
   return (
@@ -47,7 +68,19 @@ function BrandKitPage() {
       <div className="bg-zinc-900/40 ring-1 ring-zinc-800 rounded-2xl p-6 flex flex-col gap-5">
         <Field label="Display name"><input value={form.display_name} onChange={(e) => setForm({ ...form, display_name: e.target.value })} className="input" /></Field>
         <Field label="Company name"><input value={form.company_name} onChange={(e) => setForm({ ...form, company_name: e.target.value })} className="input" /></Field>
-        <Field label="Logo URL"><input value={form.logo_url} onChange={(e) => setForm({ ...form, logo_url: e.target.value })} placeholder="https://..." className="input" /></Field>
+        <Field label="Company logo">
+          <div className="flex items-center gap-4">
+            <div className="size-16 rounded-xl ring-1 ring-zinc-800 bg-zinc-950 overflow-hidden flex items-center justify-center text-[10px] text-zinc-600">
+              {form.logo_url ? <img src={form.logo_url} alt="Logo" className="size-full object-contain" /> : "No logo"}
+            </div>
+            <div className="flex flex-col gap-2">
+              <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadLogo(f); e.target.value = ""; }} />
+              <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} className="self-start bg-zinc-800 text-zinc-100 hover:bg-zinc-700 rounded-lg px-3.5 py-1.5 text-xs font-medium ring-1 ring-zinc-700 transition disabled:opacity-60">{uploading ? "Uploading…" : form.logo_url ? "Replace logo" : "Upload logo"}</button>
+              {form.logo_url && <button type="button" onClick={() => setForm({ ...form, logo_url: "" })} className="self-start text-[11px] text-zinc-500 hover:text-zinc-300 transition">Remove</button>}
+            </div>
+          </div>
+        </Field>
+        <Field label="Or paste logo URL"><input value={form.logo_url} onChange={(e) => setForm({ ...form, logo_url: e.target.value })} placeholder="https://..." className="input" /></Field>
         <div className="grid grid-cols-2 gap-4">
           <Field label="Primary color">
             <div className="flex gap-2 items-center">
