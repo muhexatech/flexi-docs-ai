@@ -254,7 +254,6 @@ function EditorPage() {
               top: 0,
               width: 794,
               pointerEvents: "none",
-              opacity: exporting ? 1 : 0,
             }}
           >
             <DocumentPaper
