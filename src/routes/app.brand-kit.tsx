@@ -37,6 +37,25 @@ function BrandKitPage() {
     setSaving(false);
   }
 
+  async function uploadLogo(file: File) {
+    if (!file.type.startsWith("image/")) { toast.error("Please choose an image file"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Max file size is 5MB"); return; }
+    setUploading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { toast.error("Not signed in"); return; }
+      const ext = file.name.split(".").pop() || "png";
+      const path = `${user.id}/logo-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("brand-logos").upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) { toast.error(upErr.message); return; }
+      const { data: pub } = supabase.storage.from("brand-logos").getPublicUrl(path);
+      setForm((f) => ({ ...f, logo_url: pub.publicUrl }));
+      toast.success("Logo uploaded — don't forget to save");
+    } finally {
+      setUploading(false);
+    }
+  }
+
   if (loading) return <div className="p-10 text-sm text-zinc-500">Loading…</div>;
 
   return (
