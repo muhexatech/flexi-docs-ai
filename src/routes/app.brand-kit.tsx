@@ -8,6 +8,8 @@ export const Route = createFileRoute("/app/brand-kit")({ component: BrandKitPage
 function BrandKitPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({ display_name: "", company_name: "", logo_url: "", brand_primary: "#0a0a0b", brand_accent: "#d4d4d8" });
 
   useEffect(() => {
